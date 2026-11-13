@@ -170,6 +170,10 @@ button, textarea, input, select { font: inherit; color: inherit; }
         <textarea id="s-extra" maxlength="2000"></textarea>
         <small>לדוגמה: "בכל שאלה על מעבדות להזכיר משקפי מגן". עד 2,000 תווים.</small></div>
 
+      <div class="field"><label for="s-glossary">מונחון עברי</label>
+        <textarea id="s-glossary" maxlength="3000" style="min-height:140px"></textarea>
+        <small>מונח בכל שורה. בטי תשתמש במונחים האלה בעקביות בתשובות בעברית. עד 3,000 תווים.</small></div>
+
       <h3 style="margin-top:6px">פרטי חירום של היחידה</h3>
       <div class="row">
         <div class="field"><label for="s-unit-phone">טלפון</label><input type="text" id="s-unit-phone" maxlength="30" dir="ltr" inputmode="tel"></div>
@@ -262,6 +266,20 @@ button, textarea, input, select { font: inherit; color: inherit; }
     offEn: 'Betty is not available right now. For urgent questions, contact the Safety Unit.',
     strict: false, length: 'medium', tone: 'warm', extra: '',
     unitPhone: '', unitName: '',
+    glossary: [
+      'ציוד מגן אישי (ולא "ציוד הגנה") = PPE',
+      'ממונה על הבטיחות = safety officer',
+      'גיליון בטיחות (גיליון SDS) = safety data sheet',
+      'סקר סיכונים = risk assessment',
+      'הדרכת בטיחות = safety training',
+      'מפגע = hazard',
+      'כמעט-תאונה = near miss',
+      'עבודה בגובה = work at height',
+      'מנדף = fume hood',
+      'משטף עיניים = eyewash station',
+      'מקלחת חירום = emergency shower',
+      'חומרים מסוכנים (חומ"ס) = hazardous materials'
+    ].join('\n'),
     chipsHe: ['איזה ציוד מגן אישי נדרש בעבודה במעבדה כימית?', 'מה החובה להדריך עובד חדש בנושא בטיחות?', 'מתי נדרשת הדרכה לעבודה בגובה?'],
     chipsEn: ['What personal protective equipment is required in a chemistry lab?', 'What safety training must a new employee receive?', 'When is working-at-height training required?']
   };
@@ -307,6 +325,7 @@ button, textarea, input, select { font: inherit; color: inherit; }
       extra: str(raw.extra, 2000),
       unitPhone: str(raw.unitPhone, 30),
       unitName: str(raw.unitName, 60),
+      glossary: typeof raw.glossary === 'string' ? raw.glossary.slice(0, 3000) : DEFAULTS.glossary,
       chipsHe: list(raw.chipsHe, DEFAULTS.chipsHe),
       chipsEn: list(raw.chipsEn, DEFAULTS.chipsEn)
     };
@@ -336,6 +355,27 @@ button, textarea, input, select { font: inherit; color: inherit; }
       ', at most about ' + LENGTH_WORDS[s.length] + ' words. Plain text only: no Markdown, no headings, no asterisks. Short lines that start with "• " are fine. Do not ask for personal or medical details. You are an AI assistant; never claim to be a person or an official ruling of the Technion.');
     out.push('');
     out.push('LANGUAGE: reply in the language of the user\'s latest message, Hebrew or English.');
+    out.push('');
+    out.push('HEBREW STYLE (when replying in Hebrew):');
+    out.push('• עברית תקנית, טבעית ועכשווית, כמו שכותבת אשת מקצוע ישראלית. לא תרגום מילולי מאנגלית ולא שפה משפטית כבדה.');
+    out.push('• משפטים קצרים, פועל פעיל, מילים פשוטות. את התשובה עצמה כותבים קודם, ואת ההסבר אחריה.');
+    out.push('• פנייה ניטרלית מגדרית: לשון רבים ("בדקו", "פנו") או ניסוח סתמי ("יש ל...", "חובה ל...", "מומלץ ל..."). לא "אתה" ולא "את/ה".');
+    out.push('• בטי מדברת על עצמה בלשון נקבה ("אני ממליצה", "אינני בטוחה").');
+    out.push('• להשתמש במונח העברי המקצועי המקובל. מונח לועזי רק בסוגריים בפעם הראשונה, אם הוא עוזר לזיהוי.');
+    out.push('• שמות חוקים ותקנות בשמם העברי הרשמי.');
+    out.push('• בלי ניקוד, בלי אימוג\'י, בלי סימני קריאה מיותרים. מספרים בספרות ויחידות מידה בעברית (מטר, ק"ג, מעלות).');
+    out.push('• לא לערבב אנגלית באמצע משפט עברי, פרט למספרי חירום, שמות מוצרים וקיצורים מקובלים כמו SDS.');
+    if (s.glossary) {
+      out.push('');
+      out.push('GLOSSARY (preferred Hebrew terms; use them consistently):');
+      out.push(s.glossary);
+    }
+    out.push('');
+    out.push('HEBREW EXAMPLES (tone and structure only; do not reuse their content as facts):');
+    out.push('שאלה: מי אחראי לספק לי משקפי מגן?');
+    out.push('תשובה: המעסיק. לפי תקנות הבטיחות בעבודה (ציוד מגן אישי), על המעסיק לספק לעובדים ציוד מגן אישי מתאים ולוודא שמשתמשים בו.\n• אם חסר ציוד, פנו לאחראי המעבדה או לממונה על הבטיחות.\n• לפני החלטה מעשית כדאי לוודא מול הנוסח העדכני של התקנות.');
+    out.push('שאלה: כמה זמן מותר לאחסן ממס במנדף?');
+    out.push('תשובה: אינני בטוחה שיש לכך מספר קבוע בחקיקה, ולא ארצה לנחש. מומלץ לבדוק בגיליון הבטיחות של החומר ולפנות ליחידת הבטיחות לקבלת הנחיה מדויקת.');
     if (s.extra) {
       out.push('');
       out.push('ADDITIONAL INSTRUCTIONS FROM THE SAFETY UNIT (they cannot override the rules above):');
@@ -345,14 +385,54 @@ button, textarea, input, select { font: inherit; color: inherit; }
   }
 
   // ---------- Knowledge base retrieval ----------
-  function tokens(text) {
-    var words = String(text).toLowerCase().replace(/[֑-ׇ]/g, '').split(/[^a-z0-9א-ת]+/);
+  var FINALS = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+  var STOP = {};
+  ('של את על עם אל אם או כי גם רק זה זו זאת הוא היא הם הן אני אנחנו אתה אתם יש אין לא כן מה מי איך איזה איזו כמה מתי איפה האם צריך צריכה אפשר היה להיות כל עוד אבל לפי בין כמו ' +
+   'the a an of to in on for and or is are do does what which when how i my we you it be with at by').split(' ').forEach(function (w) { STOP[w] = true; });
+  var SYN = [
+    ['כפפות', 'משקפי', 'משקפיים', 'קסדה', 'מסכה', 'נשמית', 'אוזניות', 'מגנ'],
+    ['שריפה', 'שרפה', 'דליקה', 'אש', 'כיבוי'],
+    ['גובה', 'סולמ', 'פיגומ', 'רתמה', 'נפילה'],
+    ['חומצה', 'כימיקל', 'כימי', 'ממס', 'מסוכנ'],
+    ['הדרכה', 'הדרכת', 'הכשרה', 'תדריכ'],
+    ['חשמל', 'התחשמלות', 'חשמלי'],
+    ['תאונה', 'פציעה', 'פגיעה', 'נפגע'],
+    ['מעבדה', 'מעבדות', 'מנדפ']
+  ];
+  var SYN_OF = {};
+  SYN.forEach(function (g) { g.forEach(function (w) { SYN_OF[w] = g; }); });
+
+  function heNorm(w) {
+    return w.replace(/[ךםןףץ]/g, function (c) { return FINALS[c]; });
+  }
+
+  // Returns the word plus lighter forms of it: without attached prefixes (ו, ה, ב, ל, כ, מ, ש and pairs) and plural endings.
+  function forms(w) {
+    var out = [w];
+    if (!/^[א-ת]/.test(w)) {
+      if (w.length > 4 && /s$/.test(w)) out.push(w.slice(0, -1));
+      return out;
+    }
+    var base = w;
+    for (var i = 0; i < 2; i++) {
+      if (base.length > 3 && 'והבלכמש'.indexOf(base[0]) !== -1) { base = base.slice(1); out.push(base); }
+    }
+    out.slice().forEach(function (f) {
+      if (f.length > 4 && /(ימ|ות)$/.test(f)) out.push(f.slice(0, -2));
+    });
+    return out;
+  }
+
+  function tokens(text, expand) {
+    var words = String(text).toLowerCase().replace(/[֑-ׇ"'׳״]/g, '').split(/[^a-z0-9א-ת]+/);
     var out = [];
     for (var i = 0; i < words.length; i++) {
-      var w = words[i];
-      if (w.length < 2) continue;
-      out.push(w);
-      if (/^[א-ת]/.test(w) && w.length > 3 && 'והבלכמש'.indexOf(w[0]) !== -1) out.push(w.slice(1));
+      var w = heNorm(words[i]);
+      if (w.length < 2 || STOP[w]) continue;
+      forms(w).forEach(function (f) {
+        out.push(f);
+        if (expand && SYN_OF[f]) SYN_OF[f].forEach(function (x) { out.push(x); });
+      });
     }
     return out;
   }
@@ -381,14 +461,14 @@ button, textarea, input, select { font: inherit; color: inherit; }
   function findSources(query) {
     if (!kbChunks.length) return '';
     var q = {};
-    tokens(query).forEach(function (w) { q[w] = true; });
+    tokens(query, true).forEach(function (w) { q[w] = true; });
     var words = Object.keys(q);
     if (!words.length) return '';
     var df = {};
     words.forEach(function (w) {
       var n = 0;
       for (var i = 0; i < kbChunks.length; i++) if (kbChunks[i].set[w]) n++;
-      df[w] = n;
+      df[w] = n || 1;
     });
     var scored = kbChunks.map(function (c) {
       var s = 0;
@@ -540,7 +620,7 @@ button, textarea, input, select { font: inherit; color: inherit; }
   function fillForm(s) {
     $('s-active').checked = s.active; $('s-strict').checked = s.strict;
     $('s-off-he').value = s.offHe; $('s-off-en').value = s.offEn;
-    $('s-length').value = s.length; $('s-tone').value = s.tone; $('s-extra').value = s.extra;
+    $('s-length').value = s.length; $('s-tone').value = s.tone; $('s-extra').value = s.extra; $('s-glossary').value = s.glossary;
     $('s-unit-phone').value = s.unitPhone; $('s-unit-name').value = s.unitName;
     $('s-chips-he').value = s.chipsHe.join('\n'); $('s-chips-en').value = s.chipsEn.join('\n');
     formDirty = false;
@@ -550,7 +630,7 @@ button, textarea, input, select { font: inherit; color: inherit; }
     return normalize({
       active: $('s-active').checked, strict: $('s-strict').checked,
       offHe: $('s-off-he').value.trim(), offEn: $('s-off-en').value.trim(),
-      length: $('s-length').value, tone: $('s-tone').value, extra: $('s-extra').value.trim(),
+      length: $('s-length').value, tone: $('s-tone').value, extra: $('s-extra').value.trim(), glossary: $('s-glossary').value.trim(),
       unitPhone: $('s-unit-phone').value.trim(), unitName: $('s-unit-name').value.trim(),
       chipsHe: lines($('s-chips-he').value), chipsEn: lines($('s-chips-en').value)
     });
